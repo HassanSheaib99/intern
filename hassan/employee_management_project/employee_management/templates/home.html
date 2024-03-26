@@ -1,0 +1,27 @@
+<!-- home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome, {{ employee.user.username }}</title>
+</head>
+<body>
+    <h1>Welcome, {{ employee.user.username }}</h1>
+    <p>Title: {{ employee.title }}</p>
+    <p>Department: {{ employee.department }}</p>
+    <p>Email: {{ employee.email }}</p>
+    <p>Phone Number: {{ employee.phone_number }}</p>
+    <p>Vacation Days: {{ employee.vacation_days }}</p>
+
+    <form action="{% url 'check_in' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Check In</button>
+    </form>
+
+    <form action="{% url 'check_out' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Check Out</button>
+    </form>
+</body>
+</html>
