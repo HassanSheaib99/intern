@@ -12,13 +12,7 @@ class Record(models.Model):
 
     phone = models.CharField(max_length=20)
 
-    address = models.CharField(max_length=300)
 
-    city = models.CharField(max_length=255)
-
-    province = models.CharField(max_length=200)
-
-    country = models.CharField(max_length=125)
 
 
     def __str__(self):

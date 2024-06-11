@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
     <h1>Search Records</h1>
     <form method="GET">
@@ -10,10 +11,29 @@
         <h2>Search Results</h2>
         <ul>
             {% for record in records %}
-                <li>{{ record.name }}</li>
+                <li>{{ record.first_name }} {{ record.last_name }}</li>
             {% empty %}
                 <li>No records found.</li>
             {% endfor %}
         </ul>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if records.has_previous %}
+                    <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+                    <a href="?page={{ records.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ records.number }} of {{ records.paginator.num_pages }}.
+                </span>
+
+                {% if records.has_next %}
+                    <a href="?page={{ records.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+                    <a href="?page={{ records.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
     {% endif %}
 {% endblock %}

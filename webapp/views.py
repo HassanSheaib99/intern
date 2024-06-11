@@ -4,7 +4,9 @@ from django.contrib import messages
 from .models import Record
 from .forms import CreateUserForm, LoginForm, CreateRecordForm, UpdateRecordForm
 from django.contrib.auth.models import auth
+from django.contrib.auth import authenticate
 from django.db.models import Q  # Import Q to use OR conditions in filtering
+from django.core.paginator import Paginator
 
 # Homepage
 def home(request):
@@ -42,12 +44,17 @@ def my_login(request):
 def dashboard(request):
     query = request.GET.get('search')
     if query:
-        my_records = Record.objects.filter(
+        records_list = Record.objects.filter(
             Q(first_name__icontains=query) | Q(last_name__icontains=query)
         )
     else:
-        my_records = Record.objects.all()
-    context = {'records': my_records, 'query': query}
+        records_list = Record.objects.all()
+
+    paginator = Paginator(records_list, 5)  # Show 10 records per page
+    page_number = request.GET.get('page')
+    records = paginator.get_page(page_number)
+
+    context = {'records': records, 'query': query}
     return render(request, 'webapp/dashboard.html', context=context)
 
 # Create a record
@@ -103,10 +110,15 @@ def user_logout(request):
 def search_records(request):
     query = request.GET.get('q')
     if query:
-        records = Record.objects.filter(
+        records_list = Record.objects.filter(
             Q(first_name__icontains=query) | Q(last_name__icontains=query)
         )
     else:
-        records = None
+        records_list = Record.objects.none()
+
+    paginator = Paginator(records_list, 5)  # Show 10 records per page
+    page_number = request.GET.get('page')
+    records = paginator.get_page(page_number)
+
     context = {'records': records, 'query': query}
     return render(request, 'webapp/search-records.html', context=context)
