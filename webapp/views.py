@@ -7,6 +7,8 @@ from django.contrib.auth.models import auth
 from django.contrib.auth import authenticate
 from django.db.models import Q  # Import Q to use OR conditions in filtering
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 # Homepage
 def home(request):
@@ -45,14 +47,21 @@ def dashboard(request):
     query = request.GET.get('search')
     if query:
         records_list = Record.objects.filter(
-            Q(first_name__icontains=query) | Q(last_name__icontains=query)
-        )
+            Q(first_name__icontains=query) | Q(last_name__icontains(query)
+        ))
     else:
         records_list = Record.objects.all()
 
-    paginator = Paginator(records_list, 5)  # Show 10 records per page
+    paginator = Paginator(records_list, 5)  # Show 5 records per page
     page_number = request.GET.get('page')
     records = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        data = {
+            'records_html': render_to_string('webapp/partials/records_list.html', {'records': records}),
+            'pagination_html': render_to_string('webapp/partials/pagination.html', {'records': records})
+        }
+        return JsonResponse(data)
 
     context = {'records': records, 'query': query}
     return render(request, 'webapp/dashboard.html', context=context)
@@ -116,7 +125,7 @@ def search_records(request):
     else:
         records_list = Record.objects.none()
 
-    paginator = Paginator(records_list, 5)  # Show 10 records per page
+    paginator = Paginator(records_list, 5)  # Show 5 records per page
     page_number = request.GET.get('page')
     records = paginator.get_page(page_number)
 

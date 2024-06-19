@@ -1,82 +1,67 @@
 {% extends 'webapp/base.html' %}
 
 {% block content %}
-    <h5>Welcome, {{ user }}! 👋</h5>
+<h5>Welcome, {{ user }}! 👋</h5>
+<hr>
+<!-- Create Record Button -->
+<a class="btn btn-outline-primary btn-sm" href="{% url 'create-record' %}">
+    Create a new record &nbsp; <i class="fa fa-plus-circle" aria-hidden="true"></i>
+</a>
+<hr> 
 
-    <hr>
-
-    <!-- Create Record Button -->
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'create-record' %}">
-        Create a new record &nbsp; <i class="fa fa-plus-circle" aria-hidden="true"></i>
-    </a>
-
-    <hr> 
-
-    <!-- Search Form -->
-    <form method="GET" action="{% url 'dashboard' %}">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Search by name..." name="search" value="{{ request.GET.search }}">
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="submit">Search</button>
-            </div>
+<!-- Search Form -->
+<form id="searchForm" method="GET" action="{% url 'dashboard' %}">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Search by name..." name="search" value="{{ request.GET.search }}">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
         </div>
-    </form>
-
-    <!-- Display Records Table -->
-    <table class="table table-hover table-bordered" id="myTable">
-        <thead class="table-light">
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Full Name</th>
-                <th scope="col">Email</th>
-                <th scope="col">Phone</th>
-                
-                <th scope="col">Date Joined</th>
-                <th scope="col">View</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if records %}
-                {% for record in records %}
-                    <tr>
-                        <td>{{ record.id }}</td>
-                        <td>{{ record.first_name }} {{ record.last_name }}</td>
-                        <td>{{ record.email }}</td>
-                        <td>{{ record.phone }}</td>
-                        
-                        <td>{{ record.creation_date }}</td>
-                        <td><a class="btn btn-success btn-sm" href="{% url 'record' record.id %}"><i class="fa fa-eye" aria-hidden="true"></i></a></td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="10">No records found.</td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="10">No records available.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-
-    <!-- Pagination Controls -->
-    <div class="pagination">
-        <span class="step-links">
-            {% if records.has_previous %}
-                <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">&laquo; first</a>
-                <a href="?page={{ records.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">previous</a>
-            {% endif %}
-
-            <span class="current">
-                Page {{ records.number }} of {{ records.paginator.num_pages }}.
-            </span>
-
-            {% if records.has_next %}
-                <a href="?page={{ records.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">next</a>
-                <a href="?page={{ records.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">last &raquo;</a>
-            {% endif %}
-        </span>
     </div>
+</form>
 
+<!-- Display Records Table -->
+<div id="records-container">
+    {% include 'webapp/partials/records_list.html' %}
+</div>
+
+<!-- Pagination Controls -->
+<div id="pagination-container">
+    {% include 'webapp/partials/pagination.html' %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        function loadRecords(url) {
+            $.ajax({
+                url: url,
+                type: 'get',
+                dataType: 'json',
+                success: function(data) {
+                    $('#records-container').html(data.records_html);
+                    $('#pagination-container').html(data.pagination_html);
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        }
+
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
+            const query = $(this).serialize();
+            const url = $(this).attr('action') + "?" + query;
+            loadRecords(url);
+        });
+
+        $(document).on('click', '.pagination a', function(e) {
+            e.preventDefault();
+            const url = $(this).attr('href');
+            loadRecords(url);
+        });
+    });
+</script>
 {% endblock %}
